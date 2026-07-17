@@ -22,7 +22,7 @@ export const getApiError = (error, fallback = 'Não foi possível concluir a ope
     return 'O servidor demorou demais para responder.';
   }
   if (!error.response) {
-    return 'Não foi possível conectar ao servidor local.';
+    return 'Não foi possível conectar ao servidor. Tente novamente em instantes.';
   }
   return error.response.data?.error || fallback;
 };
