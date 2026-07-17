@@ -77,7 +77,7 @@ input[type="datetime-local"] {
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding-inline: 24px;
 }
 
 .surface {

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { FiArrowUpRight, FiGrid, FiLogIn, FiLogOut } from 'react-icons/fi';
+import { FiArrowUpRight, FiGrid, FiLogOut } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../contexts/useAuth';
 
@@ -38,8 +38,11 @@ export default function Layout({ children }) {
             </a>
             {user ? (
               <>
-                <Link to="/dashboard" className="inline-flex items-center gap-2 px-2 sm:px-3 py-2 text-sm text-[#cbd2dc] hover:text-white">
-                  <FiGrid /> <span className="hidden sm:inline">Dashboard</span>
+                <Link
+                  to="/dashboard"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 border border-[#303744] bg-[#141821] rounded-md text-xs sm:text-sm font-bold text-[#cbd2dc] hover:text-white hover:border-[#505a6b]"
+                >
+                  <FiGrid /> <span>Dashboard</span>
                 </Link>
                 <button onClick={logout} title="Sair" className="grid place-items-center w-10 h-10 border border-[#303744] rounded-md text-[#aab3c1] hover:text-white hover:border-[#505a6b]">
                   <FiLogOut />
@@ -63,9 +66,9 @@ export default function Layout({ children }) {
       <main className="w-full flex-grow">{children}</main>
 
       <footer className="border-t border-[#202631] bg-[#0b0e13]">
-        <div className="app-shell py-12 md:py-16">
-          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-10 md:gap-16">
-            <div>
+        <div className="app-shell py-14 md:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr_1fr] gap-0 md:gap-16">
+            <div className="pb-10 md:pb-0 border-b md:border-b-0 border-[#202631]">
               <Link to="/" className="flex items-center gap-3 w-fit">
                 <img
                   src="/logo.png"
@@ -83,7 +86,7 @@ export default function Layout({ children }) {
               </span>
             </div>
 
-            <div>
+            <div className="py-10 md:py-0 border-b md:border-b-0 border-[#202631]">
               <h2 className="text-sm font-bold text-[#dce2eb] mb-4">Produto</h2>
               <nav className="flex flex-col items-start gap-3 text-sm text-[#8e98a7]">
                 <Link to="/" className="hover:text-white">Criar link</Link>
@@ -92,7 +95,7 @@ export default function Layout({ children }) {
               </nav>
             </div>
 
-            <div>
+            <div className="pt-10 md:pt-0">
               <h2 className="text-sm font-bold text-[#dce2eb] mb-4">Privacidade</h2>
               <p className="text-sm text-[#8e98a7] leading-6">
                 Estatísticas agregadas sem exibir IP no painel. Acessos protegidos por Cloudflare Turnstile.
@@ -100,7 +103,7 @@ export default function Layout({ children }) {
             </div>
           </div>
 
-          <div className="mt-12 pt-6 border-t border-[#202631] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm text-[#727d8c]">
+          <div className="mt-10 md:mt-12 pt-7 border-t border-[#202631] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 text-sm leading-6 text-[#727d8c]">
             <span>© {currentYear} AinzLink. Todos os direitos reservados.</span>
             <a href="https://brianlucca.vercel.app/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 hover:text-white">
               Desenvolvido por Brian Lucca <FiArrowUpRight />
