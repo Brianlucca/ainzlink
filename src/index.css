@@ -122,7 +122,7 @@ input[type="datetime-local"] {
   grid-template-columns: minmax(0, .78fr) minmax(520px, 1.22fr);
   gap: 64px;
   align-items: start;
-  padding: 38px 0 72px;
+  padding-block: 38px 72px;
 }
 
 .home-intro {
