@@ -16,7 +16,21 @@ export const linkService = {
 
   async list() {
     const { data } = await apiClient.get('/api/v1/urls');
-    return data;
+    if (Array.isArray(data)) return data;
+
+    const candidates = [
+      data?.links,
+      data?.urls,
+      data?.items,
+      data?.data,
+      data?.data?.links,
+      data?.data?.urls,
+      data?.data?.items,
+    ];
+    const links = candidates.find(Array.isArray);
+    if (links) return links;
+
+    throw new Error('A API retornou um formato inválido para a lista de links.');
   },
 
   async claim(shortCode, token) {

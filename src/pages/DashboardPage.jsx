@@ -33,22 +33,24 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return;
     linkService.list()
-      .then(setLinks)
+      .then((response) => setLinks(Array.isArray(response) ? response : []))
       .catch((err) => setError(getApiError(err)))
       .finally(() => setLoading(false));
   }, [user]);
 
-  const filtered = useMemo(() => links.filter((link) => {
+  const safeLinks = useMemo(() => (Array.isArray(links) ? links : []), [links]);
+
+  const filtered = useMemo(() => safeLinks.filter((link) => {
     const matchesQuery = `${link.shortCode} ${link.originalUrl}`.toLowerCase().includes(query.toLowerCase());
     const matchesStatus = status === 'all'
       || (status === 'under_review' ? link.moderationStatus === 'under_review' : link.status === status);
     return matchesQuery && matchesStatus;
-  }), [links, query, status]);
+  }), [safeLinks, query, status]);
 
-  const totalClicks = links.reduce((sum, link) => sum + (link.clicks || 0), 0);
-  const activeLinks = links.filter((link) => link.status === 'active' && link.moderationStatus !== 'under_review').length;
-  const reviewLinks = links.filter((link) => link.moderationStatus === 'under_review').length;
-  const chartLinks = [...links].sort((a, b) => b.clicks - a.clicks).slice(0, 6);
+  const totalClicks = safeLinks.reduce((sum, link) => sum + (link.clicks || 0), 0);
+  const activeLinks = safeLinks.filter((link) => link.status === 'active' && link.moderationStatus !== 'under_review').length;
+  const reviewLinks = safeLinks.filter((link) => link.moderationStatus === 'under_review').length;
+  const chartLinks = [...safeLinks].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 6);
   const chartMax = Math.max(...chartLinks.map((link) => link.clicks), 1);
 
   if (authLoading) return <Layout><Loading message="Carregando sessão..." /></Layout>;
