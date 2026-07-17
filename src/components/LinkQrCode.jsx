@@ -87,9 +87,17 @@ export default function LinkQrCode({
   };
 
   return (
-    <div className={compact ? 'flex flex-wrap items-center gap-3' : 'space-y-4'}>
-      <div ref={qrWrapperRef} className="shrink-0 p-2 bg-white rounded-md w-fit">
-        <QRCodeCanvas value={shortUrl} size={size} fgColor={foreground} bgColor={background} includeMargin />
+    <div className={compact ? 'flex flex-wrap items-center gap-3' : 'shrink-0 space-y-4'}>
+      <div ref={qrWrapperRef} className="shrink-0 p-2 bg-white rounded-md w-fit aspect-square">
+        <QRCodeCanvas
+          value={shortUrl}
+          size={size}
+          fgColor={foreground}
+          bgColor={background}
+          includeMargin
+          className="block shrink-0 aspect-square"
+          style={{ width: size, height: size, maxWidth: 'none' }}
+        />
       </div>
 
       <div className={compact ? 'flex gap-2' : 'space-y-3'}>
