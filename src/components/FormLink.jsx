@@ -22,16 +22,16 @@ const OptionToggle = ({ icon, title, description, enabled, onChange }) => (
   <button
     type="button"
     onClick={() => onChange(!enabled)}
-    className={`w-full flex items-center gap-3 p-4 border rounded-md text-left transition-colors ${
+    className={`w-full flex items-center gap-3 p-3 sm:p-4 border rounded-md text-left transition-colors ${
       enabled ? 'border-[#4f72d8] bg-[#182441]' : 'border-[#2b323e] bg-[#10141b] hover:border-[#46505f]'
     }`}
   >
-    <span className={`text-xl ${enabled ? 'text-[#91abff]' : 'text-gray-500'}`}>{icon}</span>
-    <span className="flex-1">
+    <span className={`text-xl shrink-0 ${enabled ? 'text-[#91abff]' : 'text-gray-500'}`}>{icon}</span>
+    <span className="flex-1 min-w-0">
       <strong className="block text-gray-100">{title}</strong>
       <span className="block text-sm text-gray-500 mt-1">{description}</span>
     </span>
-    <span className={`w-10 h-6 rounded-full p-1 transition-colors ${enabled ? 'bg-[#4d78ff]' : 'bg-gray-700'}`}>
+    <span className={`w-10 h-6 shrink-0 rounded-full p-1 transition-colors ${enabled ? 'bg-[#4d78ff]' : 'bg-gray-700'}`}>
       <span className={`block w-4 h-4 bg-white rounded-full transition-transform ${enabled ? 'translate-x-4' : ''}`} />
     </span>
   </button>
@@ -101,12 +101,12 @@ export default function FormLink({ setIsLoading, setLoadingMessage, setResultado
 
   return (
     <form onSubmit={handleSubmit} className="surface overflow-hidden">
-      <div className="px-6 pt-6 md:px-8 md:pt-8">
+      <div className="px-4 pt-5 sm:px-6 sm:pt-6 md:px-8 md:pt-8">
         <span className="eyebrow">Novo link</span>
         <h2 className="text-2xl font-extrabold text-white mt-2">Configure seu endereço</h2>
         <p className="text-sm text-[#929baa] mt-1 mb-7">Comece pelo destino. Os outros controles são opcionais.</p>
       </div>
-      <div className="px-6 pb-6 md:px-8 md:pb-8 space-y-5">
+      <div className="px-4 pb-5 sm:px-6 sm:pb-6 md:px-8 md:pb-8 space-y-5">
         <div>
           <label htmlFor="originalUrl" className="block mb-2 text-sm font-bold text-gray-200">Link de destino</label>
           <div className="relative">

@@ -23,7 +23,7 @@ export default function DailyClicksChart({ daily = {} }) {
   const total = days.reduce((sum, day) => sum + day.value, 0);
 
   return (
-    <section className="bg-[#0f131a] border border-[#2c333e] p-5 md:p-6 rounded-md">
+    <section className="bg-[#0f131a] border border-[#2c333e] p-4 sm:p-5 md:p-6 rounded-md overflow-hidden">
       <div className="flex items-start justify-between gap-5 mb-6">
         <div>
           <h3 className="font-bold text-white">Acessos por dia</h3>
@@ -35,7 +35,7 @@ export default function DailyClicksChart({ daily = {} }) {
         </div>
       </div>
 
-      <div className="h-56 flex items-end gap-1.5 sm:gap-2 border-b border-[#343b47]">
+      <div className="h-48 sm:h-56 flex items-end gap-1 sm:gap-2 border-b border-[#343b47]">
         {days.map((day, index) => (
           <div key={day.key} className="relative h-full flex-1 flex flex-col justify-end items-center group min-w-0">
             <span className="text-xs text-[#b9c6da] mb-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">
@@ -49,7 +49,7 @@ export default function DailyClicksChart({ daily = {} }) {
               aria-label={`${day.fullLabel}: ${day.value} ${day.value === 1 ? 'clique' : 'cliques'}`}
             />
             {(index % 2 === 0 || index === days.length - 1) && (
-              <span className="absolute translate-y-6 text-[10px] text-[#778292]">{day.label}</span>
+              <span className={`absolute translate-y-6 text-[9px] sm:text-[10px] text-[#778292] ${index % 4 !== 0 && index !== days.length - 1 ? 'hidden sm:inline' : ''}`}>{day.label}</span>
             )}
           </div>
         ))}

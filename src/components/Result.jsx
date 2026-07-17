@@ -53,32 +53,32 @@ export default function Result({ shortUrl, adminUrl, error, onCreateAnother }) {
 
   return (
     <div className="surface overflow-hidden border-[#3159bf]">
-      <div className="px-6 pt-6 md:px-8 md:pt-8">
+      <div className="px-4 pt-5 sm:px-6 sm:pt-6 md:px-8 md:pt-8">
         <span className="eyebrow">Link criado</span>
         <h2 className="text-2xl font-extrabold text-white mt-2">Pronto para compartilhar</h2>
         <p className="text-sm text-[#929baa] mt-1">Baixe o QR Code, copie o endereço ou abra a administração.</p>
       </div>
-      <div className="p-6 md:p-8 flex flex-col md:flex-row items-center md:text-left gap-6">
+      <div className="p-4 sm:p-6 md:p-8 flex flex-col md:flex-row items-center md:text-left gap-6">
         <LinkQrCode shortUrl={displayShortUrl} />
         <div className="w-full flex-grow min-w-0">
         <div className="mb-4">
           <h3 className="font-bold text-xs text-[#8994a4] flex items-center"><FiShare2 className="mr-2" />LINK PRONTO</h3>
-          <div className="flex items-center mt-2 bg-[#0d1118] p-2 rounded-md border border-[#303744]">
-            <Link to={shortPath} target="_blank" rel="noopener noreferrer" className="text-[#8eabff] break-all hover:text-white text-lg flex-grow">
+          <div className="flex items-center min-w-0 mt-2 bg-[#0d1118] p-2 rounded-md border border-[#303744]">
+            <Link to={shortPath} target="_blank" rel="noopener noreferrer" className="text-[#8eabff] break-all hover:text-white text-sm sm:text-lg flex-grow min-w-0">
               {displayShortUrl}
             </Link>
-            <button title="Copiar link" onClick={() => handleCopy(displayShortUrl, 'short')} className="ml-3 bg-[#252c38] hover:bg-[#375fc8] text-white p-2 rounded-md">
+            <button title="Copiar link" onClick={() => handleCopy(displayShortUrl, 'short')} className="ml-2 sm:ml-3 shrink-0 bg-[#252c38] hover:bg-[#375fc8] text-white p-2 rounded-md">
               {copied === 'short' ? <FiCheckCircle /> : <FiCopy />}
             </button>
           </div>
         </div>
         <div>
           <h3 className="font-bold text-xs text-[#8994a4] flex items-center"><FiSettings className="mr-2" />LINK DE ADMINISTRAÇÃO</h3>
-          <div className="flex items-center mt-2 bg-[#0d1118] p-2 rounded-md border border-[#303744]">
-            <Link to={adminPath} target="_blank" rel="noopener noreferrer" className="text-[#d5b86f] break-all hover:text-white text-sm flex-grow">
+          <div className="flex items-center min-w-0 mt-2 bg-[#0d1118] p-2 rounded-md border border-[#303744]">
+            <Link to={adminPath} target="_blank" rel="noopener noreferrer" className="text-[#d5b86f] break-all hover:text-white text-xs sm:text-sm flex-grow min-w-0">
               {displayAdminUrl}
             </Link>
-            <button title="Copiar link de administração" onClick={() => handleCopy(displayAdminUrl, 'admin')} className="ml-3 bg-[#252c38] hover:bg-[#6f5c2c] text-white p-2 rounded-md">
+            <button title="Copiar link de administração" onClick={() => handleCopy(displayAdminUrl, 'admin')} className="ml-2 sm:ml-3 shrink-0 bg-[#252c38] hover:bg-[#6f5c2c] text-white p-2 rounded-md">
               {copied === 'admin' ? <FiCheckCircle /> : <FiCopy />}
             </button>
           </div>

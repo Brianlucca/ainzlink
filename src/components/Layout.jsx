@@ -21,33 +21,33 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b border-[#202631] bg-[#090b10]/90 backdrop-blur-xl sticky top-0 z-50">
-        <div className="app-shell h-[74px] flex items-center justify-between gap-5">
-          <Link to="/" className="flex items-center gap-3 group" aria-label="AinzLink - inicio">
+        <div className="app-shell min-h-[64px] sm:min-h-[74px] py-2 flex items-center justify-between gap-2 sm:gap-5">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group shrink-0" aria-label="AinzLink - inicio">
             <img
               src="/logo.png"
               alt=""
-              className="w-12 h-10 object-contain rounded-md"
+              className="w-10 h-9 sm:w-12 sm:h-10 object-contain rounded-md"
               aria-hidden="true"
             />
-            <span className="text-xl font-extrabold text-white group-hover:text-[#a9bbff]">AinzLink</span>
+            <span className="hidden min-[390px]:inline text-lg sm:text-xl font-extrabold text-white group-hover:text-[#a9bbff]">AinzLink</span>
           </Link>
 
-          <nav className="flex items-center gap-2">
+          <nav className="flex items-center justify-end gap-1 sm:gap-2 min-w-0">
             <a href="/#duvidas" className="hidden sm:block px-3 py-2 text-sm text-[#aab3c1] hover:text-white">
               Dúvidas
             </a>
             {user ? (
               <>
-                <Link to="/dashboard" className="inline-flex items-center gap-2 px-3 py-2 text-sm text-[#cbd2dc] hover:text-white">
-                  <FiGrid /> Dashboard
+                <Link to="/dashboard" className="inline-flex items-center gap-2 px-2 sm:px-3 py-2 text-sm text-[#cbd2dc] hover:text-white">
+                  <FiGrid /> <span className="hidden sm:inline">Dashboard</span>
                 </Link>
                 <button onClick={logout} title="Sair" className="grid place-items-center w-10 h-10 border border-[#303744] rounded-md text-[#aab3c1] hover:text-white hover:border-[#505a6b]">
                   <FiLogOut />
                 </button>
               </>
             ) : (
-              <button onClick={handleLogin} disabled={!configured} className="inline-flex items-center gap-2 bg-white text-[#0b0e13] font-bold px-4 py-2.5 rounded-md hover:bg-[#dfe5ee] disabled:opacity-50">
-                <FcGoogle size={19} /> Entrar com Google
+              <button onClick={handleLogin} disabled={!configured} className="inline-flex items-center gap-2 bg-white text-[#0b0e13] text-sm font-bold px-3 sm:px-4 py-2.5 rounded-md hover:bg-[#dfe5ee] disabled:opacity-50 whitespace-nowrap">
+                <FcGoogle size={19} /> <span className="hidden sm:inline">Entrar com Google</span><span className="sm:hidden">Entrar</span>
               </button>
             )}
           </nav>

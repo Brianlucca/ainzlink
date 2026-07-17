@@ -87,7 +87,7 @@ export default function LinkQrCode({
   };
 
   return (
-    <div className={compact ? 'flex items-center gap-3' : 'space-y-4'}>
+    <div className={compact ? 'flex flex-wrap items-center gap-3' : 'space-y-4'}>
       <div ref={qrWrapperRef} className="shrink-0 p-2 bg-white rounded-md w-fit">
         <QRCodeCanvas value={shortUrl} size={size} fgColor={foreground} bgColor={background} includeMargin />
       </div>

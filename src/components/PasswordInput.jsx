@@ -32,8 +32,8 @@ export default function PasswordInput({ shortCode, destinationToken, onSuccess }
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
+    <div className="w-[calc(100%-24px)] max-w-md mx-auto my-8 sm:my-12">
+      <form onSubmit={handleSubmit} className="bg-gray-800 p-5 sm:p-8 rounded-xl shadow-2xl border border-gray-700">
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-white">Link Protegido</h2>
           <p className="text-gray-400 mt-2">Este link requer uma senha para continuar.</p>

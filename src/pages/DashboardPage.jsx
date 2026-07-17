@@ -125,14 +125,14 @@ export default function DashboardPage() {
           {filtered.map((link) => {
             const state = getLinkState(link);
             return (
-              <article key={link.shortCode} className="bg-[#141821] border border-[#282f3a] hover:border-[#3b4656] rounded-md p-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] items-center gap-5">
+              <article key={link.shortCode} className="bg-[#141821] border border-[#282f3a] hover:border-[#3b4656] rounded-md p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-[auto_1fr_auto] items-center gap-5 overflow-hidden">
                 <LinkQrCode shortUrl={link.shortUrl} style={link.qrStyle} compact />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className={`px-2 py-1 border rounded text-xs font-bold ${state.className}`}>{state.label}</span>
                     <strong className="text-[#91abff] break-all">{link.shortUrl}</strong>
                   </div>
-                  <p className="text-[#929baa] truncate">{link.originalUrl}</p>
+                  <p className="text-[#929baa] break-all sm:truncate">{link.originalUrl}</p>
                   {link.reportCount > 0 && (
                     <p className="text-sm text-amber-200 mt-3 flex items-start gap-2">
                       <FiAlertTriangle className="mt-0.5 shrink-0" />
@@ -141,7 +141,7 @@ export default function DashboardPage() {
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                   <span className="text-[#c6cdd7] flex items-center gap-2"><FiBarChart2 /> {link.clicks}</span>
                   <a href={link.shortUrl} target="_blank" rel="noreferrer" title="Abrir link" className="p-2 hover:text-[#91abff]"><FiExternalLink /></a>
                   <Link to={`/admin/${link.shortCode}`} className="inline-flex items-center gap-2 bg-[#252c38] hover:bg-[#333d4c] px-3 py-2 rounded-md"><FiLink /> Gerenciar</Link>

@@ -233,7 +233,7 @@ export default function AdminPage() {
           )}
           
           {!isEditing ? (
-            <div className="bg-[#141821] p-6 md:p-8 rounded-md border border-[#282f3a]">
+            <div className="bg-[#141821] p-4 sm:p-6 md:p-8 rounded-md border border-[#282f3a] overflow-hidden">
               <div className="space-y-5">
                 <div>
                   <h2 className="text-sm font-bold text-gray-400 flex items-center"><FiShare2 className="mr-2"/>LINK CURTO</h2>
@@ -241,7 +241,7 @@ export default function AdminPage() {
                     {stats.shortUrl}
                   </Link>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 items-center border-y border-gray-700 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 items-center border-y border-gray-700 py-6 overflow-hidden">
                   <LinkQrCode shortUrl={stats.shortUrl} style={qrStyle} editable onStyleChange={setQrStyle} />
                   <div>
                     <h2 className="font-bold text-gray-100">QR Code do link</h2>
@@ -333,7 +333,7 @@ export default function AdminPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleUpdate} className="bg-[#141821] p-6 md:p-8 rounded-md border border-[#282f3a] max-w-3xl mx-auto">
+            <form onSubmit={handleUpdate} className="bg-[#141821] p-4 sm:p-6 md:p-8 rounded-md border border-[#282f3a] max-w-3xl mx-auto overflow-hidden">
               <h2 className="text-2xl font-bold mb-6 text-center text-white">Editando Link</h2>
               <div className="space-y-4">
                 <div className="relative">
@@ -429,7 +429,7 @@ export default function AdminPage() {
                   />
                 </div>
               </div>
-              <div className="mt-8 flex gap-4">
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button type="button" onClick={() => setIsEditing(false)} className="w-full bg-gray-600 hover:bg-gray-700 font-bold p-3 rounded-lg flex items-center justify-center gap-2">
                   <FiX /> Cancelar
                 </button>
