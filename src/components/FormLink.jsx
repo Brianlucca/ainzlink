@@ -14,7 +14,6 @@ import {
 } from 'react-icons/fi';
 import { getApiError } from '../api/client';
 import { linkService } from '../services/linkService';
-import { countries } from '../constants/countries';
 import TurnstileWidget from './TurnstileWidget';
 import { currentLocalDateTimeInput, localDateTimeToIso } from '../utils/dateTime';
 
@@ -44,9 +43,8 @@ export default function FormLink({ setIsLoading, setLoadingMessage, setResultado
   const [expiresAt, setExpiresAt] = useState('');
   const [startsAt, setStartsAt] = useState('');
   const [secondaryUrl, setSecondaryUrl] = useState('');
-  const [mobileUrl, setMobileUrl] = useState('');
-  const [country, setCountry] = useState('');
-  const [countryUrl, setCountryUrl] = useState('');
+  const [iosUrl, setIosUrl] = useState('');
+  const [androidUrl, setAndroidUrl] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [scheduleEnabled, setScheduleEnabled] = useState(false);
@@ -78,8 +76,8 @@ export default function FormLink({ setIsLoading, setLoadingMessage, setResultado
           { url: secondaryUrl, weight: 50, label: 'Alternativo' },
         ] : undefined,
         rules: routingEnabled ? [
-          ...(mobileUrl ? [{ type: 'device', value: 'mobile', url: mobileUrl }] : []),
-          ...(country && countryUrl ? [{ type: 'country', value: country, url: countryUrl }] : []),
+          ...(iosUrl ? [{ type: 'device', value: 'ios', url: iosUrl }] : []),
+          ...(androidUrl ? [{ type: 'device', value: 'android', url: androidUrl }] : []),
         ] : [],
         turnstileToken,
       });
@@ -145,19 +143,12 @@ export default function FormLink({ setIsLoading, setLoadingMessage, setResultado
               </div>
             )}
 
-            <OptionToggle icon={<FiMonitor />} title="Destino inteligente" description="Envie celulares ou visitantes de um país para outra página." enabled={routingEnabled} onChange={setRoutingEnabled} />
+            <OptionToggle icon={<FiMonitor />} title="Destino por celular" description="Defina destinos diferentes para dispositivos Apple e Android." enabled={routingEnabled} onChange={setRoutingEnabled} />
             {routingEnabled && (
               <div className="space-y-3 p-4 bg-gray-900 border border-gray-700 rounded-md">
-                <label className="text-sm text-gray-300">Destino para celular<input type="url" value={mobileUrl} onChange={(event) => setMobileUrl(event.target.value)} placeholder="https://exemplo.com/mobile" className={`${inputClass} mt-2`} /></label>
-                <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3">
-                  <label className="text-sm text-gray-300">
-                    País
-                    <select value={country} onChange={(event) => setCountry(event.target.value)} className={`${inputClass} mt-2`}>
-                      <option value="">Selecione</option>
-                      {countries.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
-                    </select>
-                  </label>
-                  <label className="text-sm text-gray-300">Destino nesse país<input type="url" value={countryUrl} onChange={(event) => setCountryUrl(event.target.value)} placeholder="https://exemplo.com/brasil" className={`${inputClass} mt-2`} /></label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <label className="text-sm text-gray-300">Destino para Apple (iPhone/iPad)<input type="url" value={iosUrl} onChange={(event) => setIosUrl(event.target.value)} placeholder="https://apps.apple.com/..." className={`${inputClass} mt-2`} /></label>
+                  <label className="text-sm text-gray-300">Destino para Android<input type="url" value={androidUrl} onChange={(event) => setAndroidUrl(event.target.value)} placeholder="https://play.google.com/..." className={`${inputClass} mt-2`} /></label>
                 </div>
               </div>
             )}

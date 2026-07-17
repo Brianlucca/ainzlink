@@ -7,7 +7,6 @@ import { getApiError } from '../api/client';
 import { linkService } from '../services/linkService';
 import { useAuth } from '../contexts/useAuth';
 import LinkQrCode from '../components/LinkQrCode';
-import { countries } from '../constants/countries';
 import { currentLocalDateTimeInput, localDateTimeToIso, toLocalDateTimeInput } from '../utils/dateTime';
 import DailyClicksChart from '../components/DailyClicksChart';
 
@@ -33,9 +32,9 @@ export default function AdminPage() {
   const [newStartsAt, setNewStartsAt] = useState('');
   const [secondaryEnabled, setSecondaryEnabled] = useState(false);
   const [secondaryUrl, setSecondaryUrl] = useState('');
-  const [mobileUrl, setMobileUrl] = useState('');
-  const [countryCode, setCountryCode] = useState('');
-  const [countryUrl, setCountryUrl] = useState('');
+  const [iosUrl, setIosUrl] = useState('');
+  const [androidUrl, setAndroidUrl] = useState('');
+  const [legacyCountryRules, setLegacyCountryRules] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [claimed, setClaimed] = useState(false);
   const [qrStyle, setQrStyle] = useState({ foreground: '#111827', background: '#ffffff' });
@@ -59,11 +58,13 @@ export default function AdminPage() {
         const alternative = response.destinations.find((item, index) => index > 0 || item.url !== response.originalUrl);
         setSecondaryEnabled(Boolean(alternative));
         setSecondaryUrl(alternative?.url || '');
-        const mobileRule = response.rules.find((rule) => rule.type === 'device' && rule.value === 'mobile');
-        const countryRule = response.rules.find((rule) => rule.type === 'country');
-        setMobileUrl(mobileRule?.url || '');
-        setCountryCode(countryRule?.value?.toUpperCase() || '');
-        setCountryUrl(countryRule?.url || '');
+        const iosRule = response.rules.find((rule) => rule.type === 'device' && rule.value === 'ios');
+        const androidRule = response.rules.find((rule) => rule.type === 'device' && rule.value === 'android');
+        const legacyMobileRule = response.rules.find((rule) => rule.type === 'device' && rule.value === 'mobile');
+        const countryRules = response.rules.filter((rule) => rule.type === 'country');
+        setIosUrl(iosRule?.url || legacyMobileRule?.url || '');
+        setAndroidUrl(androidRule?.url || legacyMobileRule?.url || '');
+        setLegacyCountryRules(countryRules);
         setQrStyle(response.qrStyle);
         linkService.getAnalytics(shortCode, token).then(setAnalytics).catch(() => {});
       } catch (err) {
@@ -102,8 +103,9 @@ export default function AdminPage() {
           { url: newOriginalUrl, weight: 100, label: 'Principal' },
         ],
         rules: [
-          ...(mobileUrl ? [{ type: 'device', value: 'mobile', url: mobileUrl }] : []),
-          ...(countryCode && countryUrl ? [{ type: 'country', value: countryCode, url: countryUrl }] : []),
+          ...(iosUrl ? [{ type: 'device', value: 'ios', url: iosUrl }] : []),
+          ...(androidUrl ? [{ type: 'device', value: 'android', url: androidUrl }] : []),
+          ...legacyCountryRules,
         ],
         qrStyle,
       });
@@ -118,8 +120,9 @@ export default function AdminPage() {
           { url: secondaryUrl, weight: 50, label: 'Alternativo' },
         ] : [{ url: newOriginalUrl, weight: 100, label: 'Principal' }],
         rules: [
-          ...(mobileUrl ? [{ type: 'device', value: 'mobile', url: mobileUrl }] : []),
-          ...(countryCode && countryUrl ? [{ type: 'country', value: countryCode.toLowerCase(), url: countryUrl }] : []),
+          ...(iosUrl ? [{ type: 'device', value: 'ios', url: iosUrl }] : []),
+          ...(androidUrl ? [{ type: 'device', value: 'android', url: androidUrl }] : []),
+          ...legacyCountryRules,
         ],
       }));
       setSuccessMessage('Link atualizado com sucesso!');
@@ -305,7 +308,13 @@ export default function AdminPage() {
                           {rule.type === 'device' ? <FiMonitor className="mt-1 text-cyan-400 shrink-0" /> : <FiGlobe className="mt-1 text-cyan-400 shrink-0" />}
                           <div className="min-w-0">
                             <strong className="text-gray-300">
-                              {rule.type === 'device' ? 'Acessos por celular' : `Acessos do país ${rule.value.toUpperCase()}`}
+                              {rule.type === 'device'
+                                ? ({
+                                  ios: 'Dispositivos Apple (iPhone/iPad)',
+                                  android: 'Dispositivos Android',
+                                  mobile: 'Acessos por celular',
+                                }[rule.value] || `Dispositivo: ${rule.value}`)
+                                : `Acessos do país ${rule.value.toUpperCase()}`}
                             </strong>
                             <p className="text-sm text-gray-500 break-all mt-1">{rule.url}</p>
                           </div>
@@ -399,22 +408,13 @@ export default function AdminPage() {
                     <span className="text-sm text-gray-500">Regras específicas têm prioridade sobre o teste A/B.</span>
                   </div>
                   <label className="block text-sm font-bold text-gray-400">
-                    Destino para celular
-                    <input type="url" value={mobileUrl} onChange={(event) => setMobileUrl(event.target.value)} placeholder="Deixe vazio para usar o destino normal" className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
+                    Destino para Apple (iPhone/iPad)
+                    <input type="url" value={iosUrl} onChange={(event) => setIosUrl(event.target.value)} placeholder="https://apps.apple.com/..." className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
                   </label>
-                  <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3">
-                    <label className="text-sm font-bold text-gray-400">
-                      País
-                      <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md">
-                        <option value="">Selecione</option>
-                        {countries.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
-                      </select>
-                    </label>
-                    <label className="text-sm font-bold text-gray-400">
-                      Destino desse país
-                      <input type="url" value={countryUrl} onChange={(event) => setCountryUrl(event.target.value)} placeholder="https://exemplo.com/brasil" className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
-                    </label>
-                  </div>
+                  <label className="block text-sm font-bold text-gray-400">
+                    Destino para Android
+                    <input type="url" value={androidUrl} onChange={(event) => setAndroidUrl(event.target.value)} placeholder="https://play.google.com/..." className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
+                  </label>
                 </section>
                 <div className="relative">
                   <label htmlFor="newPassword" className="block mb-2 text-sm font-bold text-gray-400">Nova Senha</label>
