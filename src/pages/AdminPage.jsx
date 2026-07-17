@@ -261,18 +261,18 @@ export default function AdminPage() {
                     <DailyClicksChart daily={analytics.daily} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {[
-                      ['Dispositivos', analytics.devices],
-                      ['Paises', analytics.countries],
-                    ].map(([title, values]) => (
+                      ['Celulares por plataforma', analytics.platforms || { ios: 0, android: 0 }, { ios: 'Apple (iPhone/iPad)', android: 'Android' }],
+                      ['Tipos de dispositivo', analytics.devices, { mobile: 'Celular', tablet: 'Tablet', desktop: 'Computador', bot: 'Robô' }],
+                    ].map(([title, values, labels]) => (
                       <div key={title} className="bg-[#0f131a] border border-[#2c333e] p-5 rounded-md">
-                        <h3 className="font-bold text-gray-300 mb-3">{title}</h3>
+                        <h3 className="font-bold text-white mb-3">{title}</h3>
                         {Object.entries(values).slice(0, 5).map(([label, value]) => {
                           const maxValue = Math.max(...Object.values(values), 1);
                           return (
                           <div key={label} className="text-sm py-2">
                             <div className="flex justify-between mb-1.5">
-                              <span className="text-gray-400 truncate">{label}</span>
-                              <strong>{value}</strong>
+                              <span className="text-gray-200 truncate">{labels[label] || label}</span>
+                              <strong className="text-white">{value}</strong>
                             </div>
                             <div className="h-1.5 bg-[#272d37] rounded-full overflow-hidden">
                               <div className="h-full bg-[#5b82ff] rounded-full" style={{ width: `${(value / maxValue) * 100}%` }} />
@@ -346,7 +346,7 @@ export default function AdminPage() {
               <h2 className="text-2xl font-bold mb-6 text-center text-white">Editando Link</h2>
               <div className="space-y-4">
                 <div className="relative">
-                  <label className="block mb-2 text-sm font-bold text-gray-400">Link Curto (Não Editável)</label>
+                  <label className="block mb-2 text-sm font-bold text-white">Link Curto (Não Editável)</label>
                   <FiShare2 className="absolute top-11 left-4 text-gray-500" />
                   <input
                     type="text"
@@ -356,19 +356,19 @@ export default function AdminPage() {
                   />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <label className="text-sm font-bold text-gray-400">
+                  <label className="text-sm font-bold text-white">
                     Status
                     <select value={newStatus} onChange={(event) => setNewStatus(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md">
                       <option value="active">Ativo</option>
                       <option value="disabled">Desativado</option>
                     </select>
                   </label>
-                  <label className="text-sm font-bold text-gray-400">
+                  <label className="text-sm font-bold text-white">
                     Expira em
                     <input type="datetime-local" min={newStartsAt || currentLocalDateTimeInput()} value={newExpiresAt} onChange={(event) => setNewExpiresAt(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
                   </label>
                 </div>
-                <label className="block text-sm font-bold text-gray-400">
+                <label className="block text-sm font-bold text-white">
                   <span className="flex items-center gap-2"><FiCalendar /> Começa em</span>
                   <input type="datetime-local" min={currentLocalDateTimeInput()} value={newStartsAt} onChange={(event) => setNewStartsAt(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
                 </label>
@@ -376,12 +376,12 @@ export default function AdminPage() {
                   A confirmação do domínio é obrigatória em todos os acessos e não pode ser desativada.
                 </p>
                 <div className="relative">
-                  <label htmlFor="newOriginalUrl" className="block mb-2 text-sm font-bold text-gray-400">Novo Destino Original</label>
+                  <label htmlFor="newOriginalUrl" className="block mb-2 text-sm font-bold text-white">Novo Destino Original</label>
                   <FiLink className="absolute top-11 left-4 text-gray-400" />
                   <input
                     id="newOriginalUrl"
                     type="url"
-                    className="w-full p-3 pl-10 text-gray-300 bg-gray-900 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full p-3 pl-10 text-white bg-gray-900 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     value={newOriginalUrl}
                     onChange={(e) => setNewOriginalUrl(e.target.value)}
                     required
@@ -390,13 +390,13 @@ export default function AdminPage() {
                 <section className="border border-gray-700 rounded-md p-4 space-y-4">
                   <label className="flex items-center justify-between gap-4">
                     <span>
-                      <strong className="block text-gray-200">Teste A/B</strong>
+                      <strong className="block text-white">Teste A/B</strong>
                       <span className="text-sm text-gray-500">Divide os acessos igualmente entre dois destinos.</span>
                     </span>
                     <input type="checkbox" checked={secondaryEnabled} onChange={(event) => setSecondaryEnabled(event.target.checked)} />
                   </label>
                   {secondaryEnabled && (
-                    <label className="block text-sm font-bold text-gray-400">
+                    <label className="block text-sm font-bold text-white">
                       Segundo destino
                       <input type="url" required value={secondaryUrl} onChange={(event) => setSecondaryUrl(event.target.value)} placeholder="https://exemplo.com/versao-b" className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
                     </label>
@@ -404,25 +404,25 @@ export default function AdminPage() {
                 </section>
                 <section className="border border-gray-700 rounded-md p-4 space-y-4">
                   <div>
-                    <strong className="block text-gray-200">Destinos inteligentes</strong>
+                    <strong className="block text-white">Destinos inteligentes</strong>
                     <span className="text-sm text-gray-500">Regras específicas têm prioridade sobre o teste A/B.</span>
                   </div>
-                  <label className="block text-sm font-bold text-gray-400">
+                  <label className="block text-sm font-bold text-white">
                     Destino para Apple (iPhone/iPad)
                     <input type="url" value={iosUrl} onChange={(event) => setIosUrl(event.target.value)} placeholder="https://apps.apple.com/..." className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
                   </label>
-                  <label className="block text-sm font-bold text-gray-400">
+                  <label className="block text-sm font-bold text-white">
                     Destino para Android
                     <input type="url" value={androidUrl} onChange={(event) => setAndroidUrl(event.target.value)} placeholder="https://play.google.com/..." className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
                   </label>
                 </section>
                 <div className="relative">
-                  <label htmlFor="newPassword" className="block mb-2 text-sm font-bold text-gray-400">Nova Senha</label>
+                  <label htmlFor="newPassword" className="block mb-2 text-sm font-bold text-white">Nova Senha</label>
                   <FiLock className="absolute top-11 left-4 text-gray-400" />
                   <input
                     id="newPassword"
                     type="text"
-                    className="w-full p-3 pl-10 text-gray-300 bg-gray-900 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full p-3 pl-10 text-white bg-gray-900 rounded-md border border-gray-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Deixe em branco para remover a senha"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
