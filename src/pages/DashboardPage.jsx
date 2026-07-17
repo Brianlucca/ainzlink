@@ -50,7 +50,7 @@ export default function DashboardPage() {
   const totalClicks = safeLinks.reduce((sum, link) => sum + (link.clicks || 0), 0);
   const activeLinks = safeLinks.filter((link) => link.status === 'active' && link.moderationStatus !== 'under_review').length;
   const reviewLinks = safeLinks.filter((link) => link.moderationStatus === 'under_review').length;
-  const chartLinks = [...safeLinks].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 6);
+  const chartLinks = [...safeLinks].sort((a, b) => (b.clicks || 0) - (a.clicks || 0)).slice(0, 3);
   const chartMax = Math.max(...chartLinks.map((link) => link.clicks), 1);
 
   if (authLoading) return <Layout><Loading message="Carregando sessão..." /></Layout>;
@@ -88,7 +88,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-bold text-white">Desempenho por link</h2>
-                <p className="text-sm text-[#8590a0] mt-1">Seus seis links com mais acessos.</p>
+                <p className="text-sm text-[#8590a0] mt-1">Seus três links com mais acessos.</p>
               </div>
               <FiBarChart2 className="text-[#89a5ff]" />
             </div>
