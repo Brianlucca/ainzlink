@@ -1,13 +1,245 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-900 font-sans animate-gradient-move;
-  background-image: radial-gradient(circle at 1px 1px, #374151 1px, transparent 0);
-  background-size: 25px 25px;
+:root {
+  color: #e8edf5;
+  background: #090b10;
+  font-family: 'DM Sans', sans-serif;
+  font-synthesis: none;
 }
 
-input[type="date"] {
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 50% -20%, rgba(51, 105, 255, 0.13), transparent 36rem),
+    #090b10;
+  color: #e8edf5;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 100% 48px;
+  mask-image: linear-gradient(to bottom, black, transparent 75%);
+}
+
+h1, h2, h3, strong, button {
+  font-family: 'Manrope', sans-serif;
+}
+
+button, a, input, select {
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, opacity 160ms ease, transform 160ms ease;
+}
+
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid rgba(89, 132, 255, .35);
+  outline-offset: 2px;
+}
+
+input[type="date"],
+input[type="datetime-local"] {
   color-scheme: dark;
+}
+
+.app-shell {
+  width: 100%;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.surface {
+  border: 1px solid #252b36;
+  border-radius: 8px;
+  background: #141821;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .22);
+}
+
+.eyebrow {
+  color: #8ea9ff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: #929baa;
+}
+
+.trust-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  color: #aab3c1;
+  font-size: 13px;
+}
+
+.trust-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.trust-item svg {
+  color: #4fd1a5;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: minmax(0, .78fr) minmax(520px, 1.22fr);
+  gap: 64px;
+  align-items: start;
+  padding: 38px 0 72px;
+}
+
+.home-intro {
+  position: sticky;
+  top: 110px;
+  padding-top: 34px;
+}
+
+.home-title {
+  max-width: 620px;
+  margin: 14px 0 18px;
+  color: #f7f9fc;
+  font-size: clamp(40px, 5vw, 68px);
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+.home-copy {
+  max-width: 540px;
+  color: #a9b1be;
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.feature-strip {
+  border-top: 1px solid #202631;
+  border-bottom: 1px solid #202631;
+  background: #0d1016;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.feature-item {
+  min-height: 170px;
+  padding: 34px;
+  border-right: 1px solid #202631;
+}
+
+.feature-item:last-child {
+  border-right: 0;
+}
+
+.feature-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 22px;
+  place-items: center;
+  border: 1px solid #304679;
+  border-radius: 6px;
+  color: #91abff;
+  background: #131d34;
+}
+
+.faq-section {
+  padding: 84px 0 110px;
+}
+
+.faq-layout {
+  display: grid;
+  grid-template-columns: .7fr 1.3fr;
+  gap: 80px;
+}
+
+.faq-list {
+  border-top: 1px solid #2a303b;
+}
+
+.faq-item {
+  border-bottom: 1px solid #2a303b;
+}
+
+.faq-question {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px 0;
+  color: #edf1f7;
+  text-align: left;
+}
+
+.faq-answer {
+  max-width: 720px;
+  padding: 0 42px 22px 0;
+  color: #9ea7b5;
+  line-height: 1.65;
+}
+
+@media (max-width: 900px) {
+  .home-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .home-intro {
+    position: static;
+    padding-top: 0;
+  }
+
+  .feature-grid, .faq-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .feature-item {
+    border-right: 0;
+    border-bottom: 1px solid #202631;
+  }
+
+  .faq-layout {
+    gap: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 0 16px;
+  }
+
+  .home-grid {
+    padding-top: 18px;
+  }
+
+  .home-title {
+    font-size: 42px;
+  }
+
+  .home-copy {
+    font-size: 16px;
+  }
 }

@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
-import io from 'socket.io-client';
-import axios from 'axios';
 import Loading from '../components/Loading';
 import Layout from '../components/Layout';
-import { FiLink, FiLock, FiEdit, FiTrash2, FiBarChart2, FiShare2, FiX, FiCheck, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
-
-const API_URL = import.meta.env.VITE_API_URL;
-const WEBSOCKET_URL = import.meta.env.VITE_WEBSOCKET_URL;
+import { FiLink, FiLock, FiEdit, FiTrash2, FiBarChart2, FiShare2, FiX, FiCheck, FiCheckCircle, FiAlertTriangle, FiCalendar, FiGlobe, FiMonitor, FiShuffle } from 'react-icons/fi';
+import { getApiError } from '../api/client';
+import { linkService } from '../services/linkService';
+import { useAuth } from '../contexts/useAuth';
+import LinkQrCode from '../components/LinkQrCode';
+import { countries } from '../constants/countries';
+import { currentLocalDateTimeInput, localDateTimeToIso, toLocalDateTimeInput } from '../utils/dateTime';
+import DailyClicksChart from '../components/DailyClicksChart';
 
 export default function AdminPage() {
   const { shortCode } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const token = new URLSearchParams(location.search).get('token');
+  const token = new URLSearchParams(location.hash.slice(1)).get('token')
+    || new URLSearchParams(location.search).get('token');
+  const { user, loading: authLoading } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,9 +28,21 @@ export default function AdminPage() {
   const [successMessage, setSuccessMessage] = useState('');
   const [newOriginalUrl, setNewOriginalUrl] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [newStatus, setNewStatus] = useState('active');
+  const [newExpiresAt, setNewExpiresAt] = useState('');
+  const [newStartsAt, setNewStartsAt] = useState('');
+  const [secondaryEnabled, setSecondaryEnabled] = useState(false);
+  const [secondaryUrl, setSecondaryUrl] = useState('');
+  const [mobileUrl, setMobileUrl] = useState('');
+  const [countryCode, setCountryCode] = useState('');
+  const [countryUrl, setCountryUrl] = useState('');
+  const [analytics, setAnalytics] = useState(null);
+  const [claimed, setClaimed] = useState(false);
+  const [qrStyle, setQrStyle] = useState({ foreground: '#111827', background: '#ffffff' });
 
   useEffect(() => {
-    if (!token) {
+    if (authLoading) return;
+    if (!token && !user) {
       setError('Token de administração não fornecido.');
       setLoading(false);
       return;
@@ -34,11 +50,24 @@ export default function AdminPage() {
 
     const fetchInitialStats = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/v1/urls/${shortCode}/stats?token=${token}`);
-        setStats(response.data);
-        setNewOriginalUrl(response.data.originalUrl);
+        const response = await linkService.getStats(shortCode, token);
+        setStats(response);
+        setNewOriginalUrl(response.originalUrl);
+        setNewStatus(response.status);
+        setNewExpiresAt(toLocalDateTimeInput(response.expiresAt));
+        setNewStartsAt(toLocalDateTimeInput(response.startsAt));
+        const alternative = response.destinations.find((item, index) => index > 0 || item.url !== response.originalUrl);
+        setSecondaryEnabled(Boolean(alternative));
+        setSecondaryUrl(alternative?.url || '');
+        const mobileRule = response.rules.find((rule) => rule.type === 'device' && rule.value === 'mobile');
+        const countryRule = response.rules.find((rule) => rule.type === 'country');
+        setMobileUrl(mobileRule?.url || '');
+        setCountryCode(countryRule?.value?.toUpperCase() || '');
+        setCountryUrl(countryRule?.url || '');
+        setQrStyle(response.qrStyle);
+        linkService.getAnalytics(shortCode, token).then(setAnalytics).catch(() => {});
       } catch (err) {
-        setError(err.response?.data?.error || 'Não foi possível buscar os dados do link.');
+        setError(getApiError(err, 'Nao foi possivel buscar os dados do link.'));
       } finally {
         setLoading(false);
       }
@@ -46,17 +75,13 @@ export default function AdminPage() {
     
     fetchInitialStats();
 
-    const socket = io(WEBSOCKET_URL, { transports: ['websocket'] });
-    socket.on('connect', () => {
-      socket.emit('subscribeToLinkStats', shortCode);
-    });
-    socket.on('linkStatsUpdate', (update) => {
-      setStats(prevStats => ({ ...prevStats, ...update }));
-    });
-    return () => {
-      socket.disconnect();
-    };
-  }, [shortCode, token]);
+    return linkService.subscribeToStats(
+      shortCode,
+      token,
+      (update) => setStats((previous) => ({ ...previous, ...update })),
+      (message) => setError((current) => current || message),
+    );
+  }, [shortCode, token, user, authLoading]);
   
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -64,17 +89,46 @@ export default function AdminPage() {
     setSuccessMessage('');
     setError('');
     try {
-      await axios.put(`${API_URL}/api/v1/urls/${shortCode}?token=${token}`, {
+      await linkService.update(shortCode, token, {
         originalUrl: newOriginalUrl,
         password: newPassword || null,
+        status: newStatus,
+        expiresAt: newExpiresAt ? localDateTimeToIso(newExpiresAt) : null,
+        startsAt: newStartsAt ? localDateTimeToIso(newStartsAt) : null,
+        destinations: secondaryEnabled && secondaryUrl ? [
+          { url: newOriginalUrl, weight: 50, label: 'Principal' },
+          { url: secondaryUrl, weight: 50, label: 'Alternativo' },
+        ] : [
+          { url: newOriginalUrl, weight: 100, label: 'Principal' },
+        ],
+        rules: [
+          ...(mobileUrl ? [{ type: 'device', value: 'mobile', url: mobileUrl }] : []),
+          ...(countryCode && countryUrl ? [{ type: 'country', value: countryCode, url: countryUrl }] : []),
+        ],
+        qrStyle,
       });
+      setStats((current) => ({
+        ...current,
+        originalUrl: newOriginalUrl,
+        status: newStatus,
+        startsAt: newStartsAt || null,
+        expiresAt: newExpiresAt || null,
+        destinations: secondaryEnabled && secondaryUrl ? [
+          { url: newOriginalUrl, weight: 50, label: 'Principal' },
+          { url: secondaryUrl, weight: 50, label: 'Alternativo' },
+        ] : [{ url: newOriginalUrl, weight: 100, label: 'Principal' }],
+        rules: [
+          ...(mobileUrl ? [{ type: 'device', value: 'mobile', url: mobileUrl }] : []),
+          ...(countryCode && countryUrl ? [{ type: 'country', value: countryCode.toLowerCase(), url: countryUrl }] : []),
+        ],
+      }));
       setSuccessMessage('Link atualizado com sucesso!');
       setIsEditing(false);
     } catch (err) {
       if (err.response?.status === 429) {
         setError('Você fez muitas requisições. Por favor, tente novamente mais tarde.');
       } else {
-        setError(err.response?.data?.error || 'Falha ao atualizar o link.');
+        setError(getApiError(err, 'Falha ao atualizar o link.'));
       }
     } finally {
       setIsProcessing(false);
@@ -85,17 +139,31 @@ export default function AdminPage() {
     if (window.confirm('Você tem certeza que deseja deletar este link? Esta ação é irreversível.')) {
       setIsProcessing(true);
       try {
-        await axios.delete(`${API_URL}/api/v1/urls/${shortCode}?token=${token}`);
+        await linkService.delete(shortCode, token);
         setSuccessMessage('Link deletado com sucesso! Você será redirecionado.');
         setTimeout(() => navigate('/'), 2000);
       } catch (err) {
         if (err.response?.status === 429) {
           setError('Você fez muitas requisições. Por favor, tente novamente mais tarde.');
         } else {
-          setError(err.response?.data?.error || 'Falha ao deletar o link.');
+          setError(getApiError(err, 'Falha ao deletar o link.'));
         }
         setIsProcessing(false);
       }
+    }
+  };
+
+  const handleSaveQr = async () => {
+    setIsProcessing(true);
+    setError('');
+    try {
+      await linkService.update(shortCode, token, { qrStyle });
+      setStats((current) => ({ ...current, qrStyle }));
+      setSuccessMessage('Cores do QR Code salvas.');
+    } catch (err) {
+      setError(getApiError(err, 'Nao foi possivel salvar o QR Code.'));
+    } finally {
+      setIsProcessing(false);
     }
   };
   
@@ -115,12 +183,57 @@ export default function AdminPage() {
 
     if (stats) {
       return (
-        <div className="w-full max-w-2xl mx-auto">
+        <div className="app-shell py-10 md:py-14">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-7">
+            <div>
+              <span className="eyebrow">Gerenciamento</span>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-white mt-2">Detalhes do link</h1>
+              <p className="text-[#929baa] mt-2">Configuração, distribuição e desempenho em um só lugar.</p>
+            </div>
+            {stats && (
+              <span className={`w-fit px-3 py-2 border rounded-md text-sm font-bold ${
+                stats.moderationStatus === 'under_review'
+                  ? 'text-amber-300 bg-amber-950/40 border-amber-900'
+                  : stats.status === 'active'
+                    ? 'text-emerald-300 bg-emerald-950/40 border-emerald-900'
+                    : 'text-gray-300 bg-gray-800 border-gray-700'
+              }`}>
+                {stats.moderationStatus === 'under_review' ? 'Em análise' : stats.status === 'active' ? 'Ativo' : 'Desativado'}
+              </span>
+            )}
+          </div>
           {successMessage && <div className="mb-4 bg-green-500/20 text-green-300 p-3 rounded-md text-center flex items-center justify-center"><FiCheckCircle className="mr-2"/>{successMessage}</div>}
           {error && <div className="mb-4 bg-red-500/20 text-red-300 p-3 rounded-md text-center flex items-center justify-center"><FiAlertTriangle className="mr-2"/>{error}</div>}
+          {stats?.reportCount > 0 && (
+            <div className="mb-4 border border-amber-900 bg-amber-950/30 text-amber-100 p-4 rounded-md flex items-start gap-3">
+              <FiAlertTriangle className="mt-1 shrink-0" />
+              <p>
+                Este link recebeu <strong>{stats.reportCount} {stats.reportCount === 1 ? 'denúncia' : 'denúncias'}</strong>.
+                {stats.moderationStatus === 'under_review'
+                  ? ' Ele está em verificação e poderá ser excluído caso viole as regras da plataforma.'
+                  : ' A atividade está sendo monitorada e poderá passar por verificação.'}
+              </p>
+            </div>
+          )}
+          {user && token && !claimed && (
+            <button
+              onClick={async () => {
+                try {
+                  await linkService.claim(shortCode, token);
+                  setClaimed(true);
+                  setSuccessMessage('Link adicionado ao seu dashboard.');
+                } catch (err) {
+                  setError(getApiError(err));
+                }
+              }}
+              className="w-full mb-4 border border-purple-500 text-purple-300 p-3 rounded-md"
+            >
+              Adicionar este link ao meu dashboard
+            </button>
+          )}
           
           {!isEditing ? (
-            <div className="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
+            <div className="bg-[#141821] p-6 md:p-8 rounded-md border border-[#282f3a]">
               <div className="space-y-5">
                 <div>
                   <h2 className="text-sm font-bold text-gray-400 flex items-center"><FiShare2 className="mr-2"/>LINK CURTO</h2>
@@ -128,13 +241,82 @@ export default function AdminPage() {
                     {stats.shortUrl}
                   </Link>
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 items-center border-y border-gray-700 py-6">
+                  <LinkQrCode shortUrl={stats.shortUrl} style={qrStyle} editable onStyleChange={setQrStyle} />
+                  <div>
+                    <h2 className="font-bold text-gray-100">QR Code do link</h2>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Personalize as cores e use os botões para baixar ou compartilhar uma imagem pronta junto com o link.
+                    </p>
+                    <button onClick={handleSaveQr} disabled={isProcessing} className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-md disabled:opacity-50">
+                      Salvar cores
+                    </button>
+                  </div>
+                </div>
+                {analytics && (
+                  <>
+                    <DailyClicksChart daily={analytics.daily} />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      ['Dispositivos', analytics.devices],
+                      ['Paises', analytics.countries],
+                    ].map(([title, values]) => (
+                      <div key={title} className="bg-[#0f131a] border border-[#2c333e] p-5 rounded-md">
+                        <h3 className="font-bold text-gray-300 mb-3">{title}</h3>
+                        {Object.entries(values).slice(0, 5).map(([label, value]) => {
+                          const maxValue = Math.max(...Object.values(values), 1);
+                          return (
+                          <div key={label} className="text-sm py-2">
+                            <div className="flex justify-between mb-1.5">
+                              <span className="text-gray-400 truncate">{label}</span>
+                              <strong>{value}</strong>
+                            </div>
+                            <div className="h-1.5 bg-[#272d37] rounded-full overflow-hidden">
+                              <div className="h-full bg-[#5b82ff] rounded-full" style={{ width: `${(value / maxValue) * 100}%` }} />
+                            </div>
+                          </div>
+                        )})}
+                      </div>
+                    ))}
+                    </div>
+                  </>
+                )}
                 <div>
                   <h2 className="text-sm font-bold text-gray-400 flex items-center"><FiLink className="mr-2"/>DESTINO ATUAL</h2>
                   <p className="text-gray-300 break-all text-lg">{stats.originalUrl}</p>
                 </div>
-                <div className="flex justify-between items-center bg-gray-900/50 p-4 rounded-lg border border-gray-700">
+                {(stats.destinations.length > 1 || stats.rules.length > 0) && (
+                  <div className="border border-gray-700 rounded-md overflow-hidden">
+                    <div className="px-4 py-3 bg-gray-900/70 border-b border-gray-700">
+                      <h2 className="font-bold text-gray-200">Como os acessos são direcionados</h2>
+                    </div>
+                    <div className="divide-y divide-gray-700">
+                      {stats.destinations.map((item) => (
+                        <div key={`${item.label}-${item.url}`} className="p-4 flex items-start gap-3">
+                          <FiShuffle className="mt-1 text-cyan-400 shrink-0" />
+                          <div className="min-w-0">
+                            <strong className="text-gray-300">{item.label || 'Destino'} · {item.weight}%</strong>
+                            <p className="text-sm text-gray-500 break-all mt-1">{item.url}</p>
+                          </div>
+                        </div>
+                      ))}
+                      {stats.rules.map((rule) => (
+                        <div key={`${rule.type}-${rule.value}`} className="p-4 flex items-start gap-3">
+                          {rule.type === 'device' ? <FiMonitor className="mt-1 text-cyan-400 shrink-0" /> : <FiGlobe className="mt-1 text-cyan-400 shrink-0" />}
+                          <div className="min-w-0">
+                            <strong className="text-gray-300">
+                              {rule.type === 'device' ? 'Acessos por celular' : `Acessos do país ${rule.value.toUpperCase()}`}
+                            </strong>
+                            <p className="text-sm text-gray-500 break-all mt-1">{rule.url}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <div className="flex justify-between items-center bg-[#0f131a] p-5 rounded-md border border-[#2c333e]">
                   <h2 className="text-lg font-bold text-gray-300 flex items-center"><FiBarChart2 className="mr-3"/>CLIQUES TOTAIS</h2>
-                  <p className="text-4xl font-black text-purple-400">{stats.clicks}</p>
+                  <p className="text-4xl font-black text-[#91abff]">{stats.clicks}</p>
                 </div>
                 <div>
                   <h2 className="text-sm font-bold text-gray-400 flex items-center"><FiLock className="mr-2"/>STATUS DA SENHA</h2>
@@ -151,7 +333,7 @@ export default function AdminPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleUpdate} className="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
+            <form onSubmit={handleUpdate} className="bg-[#141821] p-6 md:p-8 rounded-md border border-[#282f3a] max-w-3xl mx-auto">
               <h2 className="text-2xl font-bold mb-6 text-center text-white">Editando Link</h2>
               <div className="space-y-4">
                 <div className="relative">
@@ -164,6 +346,26 @@ export default function AdminPage() {
                     readOnly
                   />
                 </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className="text-sm font-bold text-gray-400">
+                    Status
+                    <select value={newStatus} onChange={(event) => setNewStatus(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md">
+                      <option value="active">Ativo</option>
+                      <option value="disabled">Desativado</option>
+                    </select>
+                  </label>
+                  <label className="text-sm font-bold text-gray-400">
+                    Expira em
+                    <input type="datetime-local" min={newStartsAt || currentLocalDateTimeInput()} value={newExpiresAt} onChange={(event) => setNewExpiresAt(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
+                  </label>
+                </div>
+                <label className="block text-sm font-bold text-gray-400">
+                  <span className="flex items-center gap-2"><FiCalendar /> Começa em</span>
+                  <input type="datetime-local" min={currentLocalDateTimeInput()} value={newStartsAt} onChange={(event) => setNewStartsAt(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
+                </label>
+                <p className="p-3 border border-cyan-900 bg-cyan-950/30 rounded-md text-sm text-cyan-100">
+                  A confirmação do domínio é obrigatória em todos os acessos e não pode ser desativada.
+                </p>
                 <div className="relative">
                   <label htmlFor="newOriginalUrl" className="block mb-2 text-sm font-bold text-gray-400">Novo Destino Original</label>
                   <FiLink className="absolute top-11 left-4 text-gray-400" />
@@ -176,6 +378,44 @@ export default function AdminPage() {
                     required
                   />
                 </div>
+                <section className="border border-gray-700 rounded-md p-4 space-y-4">
+                  <label className="flex items-center justify-between gap-4">
+                    <span>
+                      <strong className="block text-gray-200">Teste A/B</strong>
+                      <span className="text-sm text-gray-500">Divide os acessos igualmente entre dois destinos.</span>
+                    </span>
+                    <input type="checkbox" checked={secondaryEnabled} onChange={(event) => setSecondaryEnabled(event.target.checked)} />
+                  </label>
+                  {secondaryEnabled && (
+                    <label className="block text-sm font-bold text-gray-400">
+                      Segundo destino
+                      <input type="url" required value={secondaryUrl} onChange={(event) => setSecondaryUrl(event.target.value)} placeholder="https://exemplo.com/versao-b" className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
+                    </label>
+                  )}
+                </section>
+                <section className="border border-gray-700 rounded-md p-4 space-y-4">
+                  <div>
+                    <strong className="block text-gray-200">Destinos inteligentes</strong>
+                    <span className="text-sm text-gray-500">Regras específicas têm prioridade sobre o teste A/B.</span>
+                  </div>
+                  <label className="block text-sm font-bold text-gray-400">
+                    Destino para celular
+                    <input type="url" value={mobileUrl} onChange={(event) => setMobileUrl(event.target.value)} placeholder="Deixe vazio para usar o destino normal" className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-[120px_1fr] gap-3">
+                    <label className="text-sm font-bold text-gray-400">
+                      País
+                      <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)} className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md">
+                        <option value="">Selecione</option>
+                        {countries.map((item) => <option key={item.code} value={item.code}>{item.name}</option>)}
+                      </select>
+                    </label>
+                    <label className="text-sm font-bold text-gray-400">
+                      Destino desse país
+                      <input type="url" value={countryUrl} onChange={(event) => setCountryUrl(event.target.value)} placeholder="https://exemplo.com/brasil" className="w-full mt-2 p-3 bg-gray-900 border border-gray-600 rounded-md" />
+                    </label>
+                  </div>
+                </section>
                 <div className="relative">
                   <label htmlFor="newPassword" className="block mb-2 text-sm font-bold text-gray-400">Nova Senha</label>
                   <FiLock className="absolute top-11 left-4 text-gray-400" />

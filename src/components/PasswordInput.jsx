@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import axios from 'axios';
 import Loading from './Loading';
 import { FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import { getApiError } from '../api/client';
+import { linkService } from '../services/linkService';
 
-const API_URL = import.meta.env.VITE_API_URL;
-
-export default function PasswordInput({ shortCode, onSuccess }) {
+export default function PasswordInput({ shortCode, destinationToken, onSuccess }) {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -17,12 +16,12 @@ export default function PasswordInput({ shortCode, onSuccess }) {
     setError('');
 
     try {
-      const response = await axios.post(`${API_URL}/api/v1/urls/${shortCode}/verify`, { password });
-      if (response.data.originalUrl) {
-        onSuccess(response.data.originalUrl);
+      const response = await linkService.verifyPassword(shortCode, password, destinationToken);
+      if (response.originalUrl) {
+        onSuccess(response.originalUrl);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Erro ao verificar a senha.');
+      setError(getApiError(err, 'Erro ao verificar a senha.'));
     } finally {
       setIsLoading(false);
     }

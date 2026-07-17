@@ -1,5 +1,41 @@
 # AinzLink - Frontend
 
+## Desenvolvimento local
+
+Use o seguinte `.env`:
+
+```env
+VITE_API_URL=http://localhost:5001
+VITE_FIREBASE_API_KEY=valor-do-app-web
+VITE_FIREBASE_AUTH_DOMAIN=ainzlink-e0835.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=ainzlink-e0835
+VITE_FIREBASE_APP_ID=valor-do-app-web
+VITE_TURNSTILE_SITE_KEY=chave-publica-do-widget
+```
+
+Depois execute `npm install` e `npm run dev`. O Vite abre o frontend em
+`http://localhost:5173`.
+
+O frontend conhece somente a origem do backend. Rotas, query params,
+tratamento de erro e WebSocket ficam centralizados em `src/services` e
+`src/api`, evitando URLs montadas dentro dos componentes.
+
+Para o login Google, ative o provedor em Firebase Authentication e copie
+`apiKey` e `appId` da configuracao do app Web. Essas chaves identificam o
+app cliente e podem ficar no frontend; a service account continua privada
+no backend.
+
+O Turnstile protege a criação de links e o envio de denúncias. Configure
+`ainzlink.com` e `localhost` como hostnames permitidos no widget.
+
+## Organizacao
+
+- `config`: leitura e validacao do ambiente.
+- `api`: cliente HTTP e normalizacao de erros.
+- `services`: contrato com API e WebSocket.
+- `pages`: coordenacao das telas.
+- `components`: interface e interacoes locais.
+
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
 ![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
 ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
