@@ -67,7 +67,7 @@ export default function AdminPage() {
         setQrStyle(response.qrStyle);
         linkService.getAnalytics(shortCode, token).then(setAnalytics).catch(() => {});
       } catch (err) {
-        setError(getApiError(err, 'Nao foi possivel buscar os dados do link.'));
+        setError(getApiError(err, 'Não foi possível buscar os dados do link.'));
       } finally {
         setLoading(false);
       }
@@ -161,7 +161,7 @@ export default function AdminPage() {
       setStats((current) => ({ ...current, qrStyle }));
       setSuccessMessage('Cores do QR Code salvas.');
     } catch (err) {
-      setError(getApiError(err, 'Nao foi possivel salvar o QR Code.'));
+      setError(getApiError(err, 'Não foi possível salvar o QR Code.'));
     } finally {
       setIsProcessing(false);
     }

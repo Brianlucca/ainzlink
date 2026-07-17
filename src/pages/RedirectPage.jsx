@@ -19,7 +19,7 @@ export default function RedirectPage() {
   const [reportToken, setReportToken] = useState('');
   const [reportResetKey, setReportResetKey] = useState(0);
   const handleReportWidgetError = useCallback(() => {
-    setReportMessage('Não foi possivel carregar a verificação de seguranca.');
+    setReportMessage('Não foi possível carregar a verificação de segurança.');
   }, []);
 
   const handlePasswordSuccess = (originalUrl) => {
@@ -43,7 +43,7 @@ export default function RedirectPage() {
           window.location.replace(response.originalUrl);
         }
       } catch (err) {
-        setError(getApiError(err, 'Não foi possivel encontrar este link.'));
+        setError(getApiError(err, 'Não foi possível encontrar este link.'));
         setStatus('error');
       }
     };
@@ -68,9 +68,9 @@ export default function RedirectPage() {
       await linkService.report(shortCode, 'Link suspeito', reportToken);
       setReportSent(true);
       setReportOpen(false);
-      setReportMessage('Denuncia enviada. Obrigado por ajudar a manter o AinzLink seguro.');
+      setReportMessage('Denúncia enviada. Obrigado por ajudar a manter o AinzLink seguro.');
     } catch (err) {
-      const message = getApiError(err, err.message || 'Não foi possivel enviar a denuncia.');
+      const message = getApiError(err, 'Não foi possível enviar a denúncia.');
       setReportMessage(message);
     } finally {
       setReportToken('');
@@ -129,11 +129,11 @@ export default function RedirectPage() {
           </div>
           {reportOpen && (
             <div className="mt-5 p-4 border border-red-900 bg-red-950/20 rounded-md">
-              <p className="text-sm text-gray-300 mb-3">Confirme a verificacao para enviar a denuncia.</p>
+              <p className="text-sm text-gray-300 mb-3">Confirme a verificação para enviar a denúncia.</p>
               <TurnstileWidget action="report_link" resetKey={reportResetKey} onToken={setReportToken} onError={handleReportWidgetError} />
               <div className="flex flex-col min-[420px]:flex-row gap-2 mt-3">
                 <button onClick={reportLink} disabled={!reportToken} className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded-md font-bold disabled:opacity-40">
-                  Enviar denuncia
+                  Enviar denúncia
                 </button>
                 <button onClick={() => setReportOpen(false)} className="text-gray-400 px-3 py-2">Fechar</button>
               </div>

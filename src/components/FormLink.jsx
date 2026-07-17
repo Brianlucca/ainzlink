@@ -56,7 +56,7 @@ export default function FormLink({ setIsLoading, setLoadingMessage, setResultado
   const [turnstileToken, setTurnstileToken] = useState('');
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const handleTurnstileError = useCallback(() => {
-    setError('Nao foi possivel carregar a verificacao de seguranca.');
+    setError('Não foi possível carregar a verificação de segurança.');
   }, [setError]);
 
   const handleSubmit = async (event) => {
@@ -87,7 +87,7 @@ export default function FormLink({ setIsLoading, setLoadingMessage, setResultado
     } catch (err) {
       setError(err.response?.status === 429
         ? 'Muitas tentativas. Aguarde um pouco e tente novamente.'
-        : getApiError(err, 'Nao foi possivel criar o link.'));
+        : getApiError(err, 'Não foi possível criar o link.'));
     } finally {
       setIsLoading(false);
       setLoadingMessage('');

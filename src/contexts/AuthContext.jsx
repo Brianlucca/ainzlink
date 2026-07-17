@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '../config/firebase';
 import { AuthContext } from './authContextStore';
+import { getAuthErrorMessage } from './authErrorMessage';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -16,11 +17,19 @@ export function AuthProvider({ children }) {
     user,
     loading,
     configured: isFirebaseConfigured,
-    login: () => {
+    login: async () => {
       if (!isFirebaseConfigured) {
-        throw new Error('Preencha as variaveis VITE_FIREBASE_* no .env.');
+        throw Object.assign(new Error('O login está temporariamente indisponível.'), {
+          code: 'auth/user-facing',
+        });
       }
-      return signInWithPopup(auth, googleProvider);
+      try {
+        return await signInWithPopup(auth, googleProvider);
+      } catch (error) {
+        throw Object.assign(new Error(getAuthErrorMessage(error)), {
+          code: 'auth/user-facing',
+        });
+      }
     },
     logout: () => signOut(auth),
   }), [user, loading]);

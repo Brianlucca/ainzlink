@@ -61,7 +61,7 @@ export default function TurnstileWidget({ action, resetKey, onToken, onError }) 
   }, [action, onError, onToken, reactId, resetKey]);
 
   if (!env.turnstileSiteKey) {
-    return <p className="text-sm text-red-400">Turnstile nao configurado.</p>;
+    return <p className="text-sm text-red-400">A verificação de segurança está indisponível.</p>;
   }
 
   return <div ref={containerRef} className="min-h-[65px]" />;

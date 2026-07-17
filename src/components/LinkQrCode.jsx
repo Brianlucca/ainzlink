@@ -30,7 +30,7 @@ const createShareImage = (qrCanvas, shortUrl) => {
 
   context.fillStyle = '#9ca3af';
   context.font = '26px Arial';
-  context.fillText('Confira o dominio antes de continuar', canvas.width / 2, 1210);
+  context.fillText('Confira o domínio antes de continuar', canvas.width / 2, 1210);
   return canvas;
 };
 

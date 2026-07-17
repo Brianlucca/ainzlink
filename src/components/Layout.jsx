@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { FiArrowUpRight, FiGrid, FiLogOut } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../contexts/useAuth';
+import { getAuthErrorMessage } from '../contexts/authErrorMessage';
 
 export default function Layout({ children }) {
   const currentYear = new Date().getFullYear();
@@ -14,7 +15,7 @@ export default function Layout({ children }) {
       setAuthError('');
       await login();
     } catch (error) {
-      setAuthError(error.message);
+      setAuthError(getAuthErrorMessage(error));
     }
   };
 
