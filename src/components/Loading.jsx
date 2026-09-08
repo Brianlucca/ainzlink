@@ -1,11 +1,52 @@
+import { useEffect, useState } from 'react';
+
 export default function Loading({ message }) {
+  const [isTakingLonger, setIsTakingLonger] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsTakingLonger(true), 6000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="text-center p-10 flex flex-col items-center justify-center bg-gray-800/50 rounded-lg backdrop-blur-sm">
-      <svg className="animate-spin h-10 w-10 text-purple-400 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      <p className="text-xl text-gray-300">{message}</p>
+    <div
+      className="surface w-full overflow-hidden"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div className="animate-pulse p-5 sm:p-7 md:p-8" aria-hidden="true">
+        <div className="flex items-center gap-4 mb-7">
+          <div className="h-11 w-11 shrink-0 rounded-lg bg-[#28303d]" />
+          <div className="flex-1 space-y-3">
+            <div className="h-3 w-24 rounded-full bg-[#364052]" />
+            <div className="h-6 w-2/3 max-w-xs rounded-md bg-[#28303d]" />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="h-4 w-32 rounded-full bg-[#28303d]" />
+          <div className="h-12 w-full rounded-md bg-[#202733]" />
+          <div className="h-4 w-24 rounded-full bg-[#28303d]" />
+          <div className="h-12 w-full rounded-md bg-[#202733]" />
+        </div>
+
+        <div className="grid grid-cols-3 gap-3 mt-7">
+          <div className="h-16 rounded-md bg-[#202733]" />
+          <div className="h-16 rounded-md bg-[#202733]" />
+          <div className="h-16 rounded-md bg-[#202733]" />
+        </div>
+      </div>
+
+      <div className="border-t border-[#2b323e] bg-[#0e1219] px-5 py-4 text-center">
+        <p className="text-sm font-medium text-gray-300">{message}</p>
+        {isTakingLonger && (
+          <p className="text-sm text-gray-400 mt-2">
+            O servidor está iniciando. Isso pode levar alguns instantes; mantenha esta página aberta.
+          </p>
+        )}
+      </div>
+      <span className="sr-only">Conteúdo sendo carregado.</span>
     </div>
   );
 }
