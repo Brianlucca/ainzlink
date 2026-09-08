@@ -101,7 +101,6 @@ export const linkService = {
       });
     });
     socket.on('linkStatsUpdate', onUpdate);
-    socket.on('connect_error', () => onError?.('Conexão em tempo real indisponível.'));
 
     return () => socket.disconnect();
   },
