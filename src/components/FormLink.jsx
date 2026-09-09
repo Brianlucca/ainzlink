@@ -136,7 +136,7 @@ export default function FormLink({ setIsLoading, setLoadingMessage, setResultado
               </div>
             )}
 
-            <OptionToggle icon={<FiShuffle />} title="Dividir acessos" description="Metade dos visitantes vai para cada destino." enabled={splitEnabled} onChange={setSplitEnabled} />
+            <OptionToggle icon={<FiShuffle />} title="Teste A/B" description="Metade dos visitantes vai para cada destino." enabled={splitEnabled} onChange={setSplitEnabled} />
             {splitEnabled && (
               <div className="p-4 bg-gray-900 border border-gray-700 rounded-md">
                 <label className="text-sm text-gray-300">Segundo destino<input type="url" required={splitEnabled} value={secondaryUrl} onChange={(event) => setSecondaryUrl(event.target.value)} placeholder="https://exemplo.com/versao-b" className={`${inputClass} mt-2`} /></label>
