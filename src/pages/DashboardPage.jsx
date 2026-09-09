@@ -15,6 +15,7 @@ import { getApiError } from '../api/client';
 import { useAuth } from '../contexts/useAuth';
 import { linkService } from '../services/linkService';
 import LinkQrCode from '../components/LinkQrCode';
+import CopyLinkButton from '../components/CopyLinkButton';
 
 const GeographicAccessMap = lazy(() => import('../components/GeographicAccessMap'));
 
@@ -35,15 +36,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user) return;
-    Promise.allSettled([linkService.list(), linkService.getAccountAnalytics()])
-      .then(([linksResult, analyticsResult]) => {
-        if (linksResult.status === 'rejected') {
-          setError(getApiError(linksResult.reason));
-        } else {
-          setLinks(Array.isArray(linksResult.value) ? linksResult.value : []);
-        }
-        if (analyticsResult.status === 'fulfilled') setAnalytics(analyticsResult.value);
+    linkService.getDashboardOverview()
+      .then(async (overview) => {
+        const hasCombinedResponse = Array.isArray(overview.links);
+        setLinks(hasCombinedResponse ? overview.links : await linkService.list());
+        setAnalytics(overview.analytics || overview || null);
       })
+      .catch((requestError) => setError(getApiError(requestError)))
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -150,6 +149,7 @@ export default function DashboardPage() {
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className={`px-2 py-1 border rounded text-xs font-bold ${state.className}`}>{state.label}</span>
                     <strong className="text-[#91abff] break-all">{link.shortUrl}</strong>
+                    <CopyLinkButton value={link.shortUrl} compact />
                   </div>
                   <p className="text-[#929baa] break-all sm:truncate">{link.originalUrl}</p>
                   {link.reportCount > 0 && (
