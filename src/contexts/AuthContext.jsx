@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { onAuthStateChanged, signInWithPopup, signOut } from 'firebase/auth';
+import { onAuthStateChanged, reauthenticateWithPopup, signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider, isFirebaseConfigured } from '../config/firebase';
 import { AuthContext } from './authContextStore';
 import { getAuthErrorMessage } from './authErrorMessage';
@@ -25,6 +25,18 @@ export function AuthProvider({ children }) {
       }
       try {
         return await signInWithPopup(auth, googleProvider);
+      } catch (error) {
+        throw Object.assign(new Error(getAuthErrorMessage(error)), {
+          code: 'auth/user-facing',
+        });
+      }
+    },
+    reauthenticate: async () => {
+      if (!auth.currentUser) throw new Error('Sessão não encontrada.');
+      try {
+        const credential = await reauthenticateWithPopup(auth.currentUser, googleProvider);
+        await credential.user.getIdToken(true);
+        return credential;
       } catch (error) {
         throw Object.assign(new Error(getAuthErrorMessage(error)), {
           code: 'auth/user-facing',

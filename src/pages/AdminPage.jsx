@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/useAuth';
 import LinkQrCode from '../components/LinkQrCode';
 import { currentLocalDateTimeInput, localDateTimeToIso, toLocalDateTimeInput } from '../utils/dateTime';
 import DailyClicksChart from '../components/DailyClicksChart';
+import { FcGoogle } from 'react-icons/fc';
 
 export default function AdminPage() {
   const { shortCode } = useParams();
@@ -16,7 +17,7 @@ export default function AdminPage() {
   const navigate = useNavigate();
   const token = new URLSearchParams(location.hash.slice(1)).get('token')
     || new URLSearchParams(location.search).get('token');
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, login, configured } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -39,6 +40,24 @@ export default function AdminPage() {
   const [claimed, setClaimed] = useState(false);
   const [qrStyle, setQrStyle] = useState({ foreground: '#111827', background: '#ffffff' });
 
+  const claimLink = async () => {
+    setIsProcessing(true);
+    setError('');
+    try {
+      if (!user) await login();
+      const response = await linkService.claim(shortCode, token);
+      setClaimed(true);
+      setStats((current) => ({ ...current, ownedByCurrentUser: true }));
+      setSuccessMessage(response.alreadyOwned
+        ? 'Este link já estava salvo no seu dashboard.'
+        : 'Link adicionado ao seu dashboard.');
+    } catch (err) {
+      setError(getApiError(err, 'Não foi possível salvar este link no dashboard.'));
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   useEffect(() => {
     if (authLoading) return;
     if (!token && !user) {
@@ -51,6 +70,7 @@ export default function AdminPage() {
       try {
         const response = await linkService.getStats(shortCode, token);
         setStats(response);
+        setClaimed(response.ownedByCurrentUser);
         setNewOriginalUrl(response.originalUrl);
         setNewStatus(response.status);
         setNewExpiresAt(toLocalDateTimeInput(response.expiresAt));
@@ -218,20 +238,18 @@ export default function AdminPage() {
               </p>
             </div>
           )}
-          {user && token && !claimed && (
+          {token && !claimed && (!user || stats.ownedByCurrentUser === false) && (
             <button
-              onClick={async () => {
-                try {
-                  await linkService.claim(shortCode, token);
-                  setClaimed(true);
-                  setSuccessMessage('Link adicionado ao seu dashboard.');
-                } catch (err) {
-                  setError(getApiError(err));
-                }
-              }}
-              className="w-full mb-4 border border-purple-500 text-purple-300 p-3 rounded-md"
+              onClick={claimLink}
+              disabled={!configured || isProcessing}
+              className="w-full mb-4 border border-purple-500 text-purple-300 p-3 rounded-md disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              Adicionar este link ao meu dashboard
+              {!user && <FcGoogle size={20} />}
+              {isProcessing
+                ? 'Salvando...'
+                : user
+                  ? 'Adicionar este link ao meu dashboard'
+                  : 'Entrar e salvar no dashboard'}
             </button>
           )}
           

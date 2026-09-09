@@ -12,7 +12,7 @@ export default function RedirectPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState('');
-  const [destination, setDestination] = useState({ host: '', token: '' });
+  const [destination, setDestination] = useState({ host: '', path: '', token: '' });
   const [reportSent, setReportSent] = useState(false);
   const [reportMessage, setReportMessage] = useState('');
   const [reportOpen, setReportOpen] = useState(false);
@@ -34,6 +34,7 @@ export default function RedirectPage() {
         if (response.previewRequired) {
           setDestination({
             host: response.destinationHost,
+            path: response.destinationPath || '/',
             token: response.destinationToken,
           });
           setStatus('preview');
@@ -115,9 +116,14 @@ export default function RedirectPage() {
         <section className="surface w-[calc(100%-24px)] sm:w-[calc(100%-32px)] max-w-xl mx-auto my-8 sm:mt-12 md:mt-20 p-5 sm:p-7 md:p-9">
           <span className="eyebrow">Saída segura</span>
           <h2 className="text-3xl font-extrabold mt-2">Confirme o destino</h2>
-          <p className="text-gray-400 mt-6">Este link direciona para o domínio:</p>
-          <p className="text-[#9db3ff] text-xl sm:text-2xl font-bold break-all mt-2 p-3 sm:p-4 bg-[#0d1118] border border-[#303744] rounded-md">{destination.host}</p>
-          <p className="text-gray-500 text-sm leading-6 mt-4">Confira o domínio antes de continuar. Nunca informe senhas em sites que você não reconhece.</p>
+          <p className="text-gray-400 mt-6">Este link direciona para:</p>
+          <div className="mt-2 p-3 sm:p-4 bg-[#0d1118] border border-[#303744] rounded-md overflow-hidden">
+            <span className="block text-xs font-bold uppercase tracking-wide text-[#71809a] mb-1">Domínio</span>
+            <p className="text-[#9db3ff] text-xl sm:text-2xl font-bold break-all">{destination.host}</p>
+            <span className="block text-xs font-bold uppercase tracking-wide text-[#71809a] mt-4 mb-1">Caminho</span>
+            <p className="text-[#c8d0dc] text-sm sm:text-base font-mono break-all">{destination.path}</p>
+          </div>
+          <p className="text-gray-500 text-sm leading-6 mt-4">Confira o domínio e o caminho completo antes de continuar. Nunca informe senhas em sites que você não reconhece.</p>
           <div className="flex flex-col sm:flex-row gap-3 mt-6">
             <button onClick={continueToDestination} className="sm:flex-1 bg-[#4d78ff] hover:bg-[#668bff] p-3 rounded-md font-bold">Continuar</button>
             <button onClick={() => navigate('/')} className="border border-gray-600 text-gray-300 p-3 rounded-md">
