@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
-import { FiArrowUpRight, FiGrid, FiLogOut } from 'react-icons/fi';
+import { FiArrowUpRight, FiGrid, FiLogOut, FiSettings } from 'react-icons/fi';
 import { FcGoogle } from 'react-icons/fc';
 import { useAuth } from '../contexts/useAuth';
 import { getAuthErrorMessage } from '../contexts/authErrorMessage';
@@ -44,6 +44,13 @@ export default function Layout({ children }) {
                   className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 border border-[#303744] bg-[#141821] rounded-md text-xs sm:text-sm font-bold text-[#cbd2dc] hover:text-white hover:border-[#505a6b]"
                 >
                   <FiGrid /> <span>Dashboard</span>
+                </Link>
+                <Link
+                  to="/configuracoes/notificacoes"
+                  title="Configurar notificações"
+                  className="grid place-items-center w-10 h-10 border border-[#303744] bg-[#141821] rounded-md text-[#aab3c1] hover:text-white hover:border-[#505a6b]"
+                >
+                  <FiSettings />
                 </Link>
                 <button onClick={logout} title="Sair" className="grid place-items-center w-10 h-10 border border-[#303744] rounded-md text-[#aab3c1] hover:text-white hover:border-[#505a6b]">
                   <FiLogOut />
@@ -92,7 +99,9 @@ export default function Layout({ children }) {
               <nav className="flex flex-col items-start gap-3 text-sm text-[#8e98a7]">
                 <Link to="/" className="hover:text-white">Criar link</Link>
                 {user && <Link to="/dashboard" className="hover:text-white">Dashboard</Link>}
+                {user && <Link to="/configuracoes/notificacoes" className="hover:text-white">Notificações</Link>}
                 <a href="/#duvidas" className="hover:text-white">Central de dúvidas</a>
+                <a href="mailto:suporte.ainzlink@gmail.com" className="hover:text-white">Falar com o suporte</a>
               </nav>
             </div>
 
