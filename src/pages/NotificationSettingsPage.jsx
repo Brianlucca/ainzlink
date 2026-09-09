@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { FiBell, FiCheckCircle, FiClock, FiLock, FiMail, FiSend } from 'react-icons/fi';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { FiAlertTriangle, FiBell, FiCheckCircle, FiClock, FiLock, FiMail, FiSend, FiTrash2 } from 'react-icons/fi';
+import { FcGoogle } from 'react-icons/fc';
 import Layout from '../components/Layout';
 import Loading from '../components/Loading';
 import { getApiError } from '../api/client';
@@ -26,14 +27,21 @@ const options = [
 ];
 
 export default function NotificationSettingsPage() {
-  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const { user, loading: authLoading, logout, reauthenticate } = useAuth();
   const [preferences, setPreferences] = useState(null);
   const [savedPreferences, setSavedPreferences] = useState(null);
   const [saving, setSaving] = useState(false);
   const [sendingSummary, setSendingSummary] = useState(false);
   const [manualWeeklySummary, setManualWeeklySummary] = useState(null);
+  const [accountSummary, setAccountSummary] = useState({ links: 0, clicks: 0 });
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const accountName = user?.displayName || user?.email?.split('@')[0] || 'Usuário AinzLink';
+  const accountInitial = accountName.charAt(0).toUpperCase();
 
   useEffect(() => {
     if (!user) return;
@@ -42,6 +50,7 @@ export default function NotificationSettingsPage() {
         setPreferences(settings.emailPreferences);
         setSavedPreferences(settings.emailPreferences);
         setManualWeeklySummary(settings.manualWeeklySummary);
+        setAccountSummary(settings.accountSummary || { links: 0, clicks: 0 });
       })
       .catch((requestError) => setError(getApiError(requestError, 'Não foi possível carregar suas preferências.')));
   }, [user]);
@@ -96,6 +105,21 @@ export default function NotificationSettingsPage() {
     ? JSON.stringify(preferences) !== JSON.stringify(savedPreferences)
     : false;
 
+  const deleteAccount = async () => {
+    setDeletingAccount(true);
+    setError('');
+    setSuccessMessage('');
+    try {
+      await reauthenticate();
+      await userService.deleteAccount();
+      await logout();
+      navigate('/', { replace: true });
+    } catch (requestError) {
+      setError(requestError?.message || getApiError(requestError, 'Não foi possível excluir sua conta.'));
+      setDeletingAccount(false);
+    }
+  };
+
   return (
     <Layout>
       <section className="app-shell py-10 md:py-14">
@@ -103,8 +127,35 @@ export default function NotificationSettingsPage() {
           <span className="eyebrow">Configurações</span>
           <h1 className="text-3xl md:text-4xl font-extrabold text-white mt-2">Notificações por e-mail</h1>
           <p className="text-[#929baa] mt-3 leading-6">
-            Escolha quais mensagens deseja receber em <strong className="text-gray-200">{user.email}</strong>.
+            Gerencie sua conta e escolha quais mensagens deseja receber.
           </p>
+
+          <section className="surface mt-7 p-4 sm:p-5 shadow-none">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+              <div className="flex items-center gap-4 min-w-0">
+                {user.photoURL ? (
+                  <img
+                    src={user.photoURL}
+                    alt=""
+                    referrerPolicy="no-referrer"
+                    className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover shrink-0 border border-[#3a4351]"
+                  />
+                ) : (
+                  <span className="grid place-items-center w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-[#29457f] text-white text-xl font-extrabold shrink-0">
+                    {accountInitial}
+                  </span>
+                )}
+                <div className="min-w-0">
+                  <span className="block text-xs font-extrabold uppercase tracking-wide text-[#7f8b9c]">Conta conectada</span>
+                  <strong className="block text-white text-lg mt-1 truncate">{accountName}</strong>
+                  <span className="block text-sm text-[#929baa] mt-0.5 break-all">{user.email}</span>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-2 w-fit px-3 py-2 bg-white text-[#15181d] rounded-md text-sm font-bold shrink-0">
+                <FcGoogle size={18} /> Google
+              </span>
+            </div>
+          </section>
 
           {error && <p className="mt-6 border border-red-900 bg-red-950/30 text-red-300 p-4 rounded-md">{error}</p>}
           {successMessage && <p className="mt-6 border border-emerald-900 bg-emerald-950/30 text-emerald-300 p-4 rounded-md flex items-center gap-2"><FiCheckCircle /> {successMessage}</p>}
@@ -169,6 +220,77 @@ export default function NotificationSettingsPage() {
                   <FiClock /> Novo envio manual disponível em {nextSummaryDate}.
                 </p>
               )}
+            </section>
+
+            <section className="mt-8 border border-red-950 bg-[linear-gradient(135deg,rgba(69,10,10,.18),rgba(13,17,24,.85))] rounded-lg overflow-hidden">
+              <div className="p-5 sm:p-7">
+                <div className="flex gap-4 items-start">
+                  <span className="grid place-items-center w-11 h-11 shrink-0 rounded-md border border-red-900 bg-red-950/60 text-red-400">
+                    <FiAlertTriangle />
+                  </span>
+                  <div className="min-w-0">
+                    <span className="text-xs font-extrabold uppercase tracking-wide text-red-400">Encerrar conta AinzLink</span>
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mt-1">Apagar permanentemente seus links</h2>
+                    <p className="text-sm text-[#a8aebb] mt-2 leading-6">
+                      A conta Google <strong className="text-gray-200 break-all">{user.email}</strong> será desvinculada. Seus endereços curtos deixarão de redirecionar imediatamente e não poderão ser recuperados.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-6">
+                  <div className="border border-red-950/80 bg-[#0c0f15] rounded-md p-4">
+                    <span className="block text-xs uppercase font-bold text-[#777f8c]">Links apagados</span>
+                    <strong className="block text-2xl text-white mt-1">{accountSummary.links}</strong>
+                  </div>
+                  <div className="border border-red-950/80 bg-[#0c0f15] rounded-md p-4">
+                    <span className="block text-xs uppercase font-bold text-[#777f8c]">Acessos removidos</span>
+                    <strong className="block text-2xl text-white mt-1">{accountSummary.clicks}</strong>
+                  </div>
+                  <div className="border border-red-950/80 bg-[#0c0f15] rounded-md p-4">
+                    <span className="block text-xs uppercase font-bold text-[#777f8c]">Resultado</span>
+                    <strong className="block text-sm text-red-300 mt-2">Irreversível</strong>
+                  </div>
+                </div>
+
+                {!deleteOpen ? (
+                  <button onClick={() => setDeleteOpen(true)} className="mt-5 border border-red-800 text-red-300 hover:bg-red-950/40 px-5 py-3 rounded-md font-bold inline-flex items-center gap-2">
+                    <FiTrash2 /> Quero excluir minha conta
+                  </button>
+                ) : (
+                  <div className="mt-5 p-4 sm:p-5 border border-red-900 bg-[#0d1118] rounded-md">
+                    <label htmlFor="delete-confirmation" className="block text-sm text-gray-300 leading-6">
+                      Para confirmar a exclusão de <strong className="text-white break-all">{user.email}</strong>, digite <strong className="text-red-300">EXCLUIR</strong>. Depois, confirme sua identidade novamente pelo Google.
+                    </label>
+                    <input
+                      id="delete-confirmation"
+                      value={deleteConfirmation}
+                      onChange={(event) => setDeleteConfirmation(event.target.value)}
+                      disabled={deletingAccount}
+                      autoComplete="off"
+                      className="w-full mt-3 bg-[#090c11] border border-[#3b424e] rounded-md p-3 text-white outline-none focus:border-red-600"
+                    />
+                    <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                      <button
+                        onClick={deleteAccount}
+                        disabled={deleteConfirmation !== 'EXCLUIR' || deletingAccount}
+                        className="bg-red-700 hover:bg-red-600 px-5 py-3 rounded-md font-bold disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+                      >
+                        <FiTrash2 /> {deletingAccount ? 'Excluindo...' : 'Excluir permanentemente'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setDeleteOpen(false);
+                          setDeleteConfirmation('');
+                        }}
+                        disabled={deletingAccount}
+                        className="border border-[#3b424e] text-gray-300 px-5 py-3 rounded-md font-bold disabled:opacity-40"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </section>
             </>
           )}
