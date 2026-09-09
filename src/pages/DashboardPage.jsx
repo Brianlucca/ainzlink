@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import {
   FiAlertTriangle,
@@ -16,6 +16,8 @@ import { useAuth } from '../contexts/useAuth';
 import { linkService } from '../services/linkService';
 import LinkQrCode from '../components/LinkQrCode';
 
+const GeographicAccessMap = lazy(() => import('../components/GeographicAccessMap'));
+
 const getLinkState = (link) => {
   if (link.moderationStatus === 'under_review') return { label: 'Em análise', className: 'text-amber-300 bg-amber-950/40 border-amber-900' };
   if (link.status === 'active') return { label: 'Ativo', className: 'text-emerald-300 bg-emerald-950/40 border-emerald-900' };
@@ -29,12 +31,19 @@ export default function DashboardPage() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
+  const [analytics, setAnalytics] = useState(null);
 
   useEffect(() => {
     if (!user) return;
-    linkService.list()
-      .then((response) => setLinks(Array.isArray(response) ? response : []))
-      .catch((err) => setError(getApiError(err)))
+    Promise.allSettled([linkService.list(), linkService.getAccountAnalytics()])
+      .then(([linksResult, analyticsResult]) => {
+        if (linksResult.status === 'rejected') {
+          setError(getApiError(linksResult.reason));
+        } else {
+          setLinks(Array.isArray(linksResult.value) ? linksResult.value : []);
+        }
+        if (analyticsResult.status === 'fulfilled') setAnalytics(analyticsResult.value);
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
@@ -103,6 +112,14 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+          </section>
+        )}
+
+        {analytics && (
+          <section className="surface p-5 md:p-6 mb-6 shadow-none">
+            <Suspense fallback={<p className="text-sm text-[#8590a0]">Preparando mapas...</p>}>
+              <GeographicAccessMap analytics={analytics} />
+            </Suspense>
           </section>
         )}
 
