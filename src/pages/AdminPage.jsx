@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Layout from '../components/Layout';
@@ -9,7 +9,10 @@ import { useAuth } from '../contexts/useAuth';
 import LinkQrCode from '../components/LinkQrCode';
 import { currentLocalDateTimeInput, localDateTimeToIso, toLocalDateTimeInput } from '../utils/dateTime';
 import DailyClicksChart from '../components/DailyClicksChart';
+import CopyLinkButton from '../components/CopyLinkButton';
 import { FcGoogle } from 'react-icons/fc';
+
+const GeographicAccessMap = lazy(() => import('../components/GeographicAccessMap'));
 
 export default function AdminPage() {
   const { shortCode } = useParams();
@@ -258,25 +261,31 @@ export default function AdminPage() {
               <div className="space-y-5">
                 <div>
                   <h2 className="text-sm font-bold text-gray-400 flex items-center"><FiShare2 className="mr-2"/>LINK CURTO</h2>
-                  <Link to={new URL(stats.shortUrl).pathname} target="_blank" rel="noopener noreferrer" className="text-cyan-400 break-all text-xl hover:underline">
-                    {stats.shortUrl}
-                  </Link>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 items-center border-y border-gray-700 py-6 overflow-hidden">
-                  <LinkQrCode shortUrl={stats.shortUrl} style={qrStyle} editable onStyleChange={setQrStyle} />
-                  <div>
-                    <h2 className="font-bold text-gray-100">QR Code do link</h2>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Personalize as cores e use os botões para baixar ou compartilhar uma imagem pronta junto com o link.
-                    </p>
-                    <button onClick={handleSaveQr} disabled={isProcessing} className="mt-4 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-md disabled:opacity-50">
-                      Salvar cores
-                    </button>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-1">
+                    <Link to={new URL(stats.shortUrl).pathname} target="_blank" rel="noopener noreferrer" className="text-cyan-400 break-all text-xl hover:underline min-w-0">
+                      {stats.shortUrl}
+                    </Link>
+                    <CopyLinkButton value={stats.shortUrl} />
                   </div>
+                </div>
+                <div className="border-y border-gray-700 py-6 overflow-hidden">
+                  <div className="mb-5">
+                    <h2 className="font-bold text-gray-100">QR Code e imagem para compartilhamento</h2>
+                    <p className="text-sm text-gray-400 mt-2">
+                      Escolha um estilo com bom contraste e gere uma arte em alta resolução pronta para enviar.
+                    </p>
+                  </div>
+                  <LinkQrCode shortUrl={stats.shortUrl} style={qrStyle} editable onStyleChange={setQrStyle} />
+                  <button onClick={handleSaveQr} disabled={isProcessing} className="mt-5 bg-cyan-500 hover:bg-cyan-400 text-gray-950 font-bold px-4 py-2 rounded-md disabled:opacity-50">
+                    Salvar estilo do QR Code
+                  </button>
                 </div>
                 {analytics && (
                   <>
                     <DailyClicksChart daily={analytics.daily} />
+                    <Suspense fallback={<p className="text-sm text-[#8590a0]">Preparando mapas...</p>}>
+                      <GeographicAccessMap analytics={analytics} />
+                    </Suspense>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {[
                       ['Celulares por plataforma', analytics.platforms || { ios: 0, android: 0 }, { ios: 'Apple (iPhone/iPad)', android: 'Android' }],
@@ -422,7 +431,7 @@ export default function AdminPage() {
                 </section>
                 <section className="border border-gray-700 rounded-md p-4 space-y-4">
                   <div>
-                    <strong className="block text-white">Destinos inteligentes</strong>
+                    <strong className="block text-white">Destino por celular</strong>
                     <span className="text-sm text-gray-500">Regras específicas têm prioridade sobre o teste A/B.</span>
                   </div>
                   <label className="block text-sm font-bold text-white">

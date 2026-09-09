@@ -33,6 +33,11 @@ export const linkService = {
     throw new Error('A API retornou um formato inválido para a lista de links.');
   },
 
+  async getDashboardOverview() {
+    const { data } = await apiClient.get('/api/v1/urls/analytics/overview');
+    return data;
+  },
+
   async claim(shortCode, token) {
     const { data } = await apiClient.post(`/api/v1/urls/${encodeURIComponent(shortCode)}/claim`, { token });
     return data;
