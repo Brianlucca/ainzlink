@@ -20,4 +20,9 @@ export const userService = {
     const { data } = await apiClient.post('/api/v1/users/notifications/weekly-summary');
     return data;
   },
+
+  async deleteAccount() {
+    const { data } = await apiClient.delete('/api/v1/users/me');
+    return data;
+  },
 };
