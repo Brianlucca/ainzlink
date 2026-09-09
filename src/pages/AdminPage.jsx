@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useParams, useLocation, useNavigate, Link } from 'react-router-dom';
 import Loading from '../components/Loading';
 import Layout from '../components/Layout';
@@ -10,6 +10,8 @@ import LinkQrCode from '../components/LinkQrCode';
 import { currentLocalDateTimeInput, localDateTimeToIso, toLocalDateTimeInput } from '../utils/dateTime';
 import DailyClicksChart from '../components/DailyClicksChart';
 import { FcGoogle } from 'react-icons/fc';
+
+const GeographicAccessMap = lazy(() => import('../components/GeographicAccessMap'));
 
 export default function AdminPage() {
   const { shortCode } = useParams();
@@ -277,6 +279,9 @@ export default function AdminPage() {
                 {analytics && (
                   <>
                     <DailyClicksChart daily={analytics.daily} />
+                    <Suspense fallback={<p className="text-sm text-[#8590a0]">Preparando mapas...</p>}>
+                      <GeographicAccessMap analytics={analytics} />
+                    </Suspense>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {[
                       ['Celulares por plataforma', analytics.platforms || { ios: 0, android: 0 }, { ios: 'Apple (iPhone/iPad)', android: 'Android' }],
